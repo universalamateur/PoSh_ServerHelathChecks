@@ -33,12 +33,17 @@ If($serverIP)
           foreach($objDisk in $disks){
             $freeSpace = [math]::round($objDisk.FreeSpace / 1GB, 2).tostring("0.00")+" GB"
             $size = [math]::round($objDisk.Size / 1GB, 2).tostring("0.00")+" GB"
+            $copyPaste = $freeSpace + "/" + $size
+            $temp = $objDisk.FreeSpace/$objDisk.Size
+            $freePercentage = $temp.tostring("P")
             $object = New-Object PSObject -Property ([ordered]@{ 
                 Server                  = $server
                 IPAddress               = $value
                 Drive                   = $objDisk.DeviceID
                 Freespace               = $freeSpace
                 Size                    = $size
+                CopyPate                = $copyPaste
+                FreeSpaceInPercent      = $freePercentage
              })
         # Add object to array
         $array += $object
