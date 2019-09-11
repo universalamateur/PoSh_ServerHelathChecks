@@ -29,27 +29,43 @@ $serverIP = ($ping.Send($server).Address)
 If($serverIP)
     {
         $value = $serverIP.IPAddressToString
+        $disks = $null
         $disks = Get-wmiobject -computername $server -Query "Select DeviceID,Size,FreeSpace From Win32_LogicalDisk Where DriveType='3'" #-Credential $cred
-          foreach($objDisk in $disks){
-            $freeSpace = [math]::round($objDisk.FreeSpace / 1GB, 2).tostring("0.00")+" GB"
-            $size = [math]::round($objDisk.Size / 1GB, 2).tostring("0.00")+" GB"
-            $copyPaste = $freeSpace + "/" + $size
-            $temp = $objDisk.FreeSpace/$objDisk.Size
-            $freePercentage = $temp.tostring("P")
+        if($disks)
+            {
+              foreach($objDisk in $disks){
+                $freeSpace = [math]::round($objDisk.FreeSpace / 1GB, 2).tostring("0.00")+" GB"
+                $size = [math]::round($objDisk.Size / 1GB, 2).tostring("0.00")+" GB"
+                $copyPaste = $freeSpace + "/" + $size
+                $temp = $objDisk.FreeSpace/$objDisk.Size
+                $freePercentage = $temp.tostring("P")
+                $object = New-Object PSObject -Property ([ordered]@{ 
+                    Server                  = $server
+                    IPAddress               = $value
+                    Drive                   = $objDisk.DeviceID
+                    Freespace               = $freeSpace
+                    Size                    = $size
+                    CopyPate                = $copyPaste
+                    FreeSpaceInPercent      = $freePercentage
+                     })
+                # Add object to array
+                $array += $object
+                #Display object
+                $object
+                }
+            }
+            Else
+            {
             $object = New-Object PSObject -Property ([ordered]@{ 
                 Server                  = $server
                 IPAddress               = $value
-                Drive                   = $objDisk.DeviceID
-                Freespace               = $freeSpace
-                Size                    = $size
-                CopyPate                = $copyPaste
-                FreeSpaceInPercent      = $freePercentage
-             })
-        # Add object to array
-        $array += $object
-        #Display object
-        $object
-    }
+                Drive                   = 'NA'
+                Freespace               = 'NA'
+                Size                    = 'NA'
+                })
+            $array += $object        
+            $object
+        }
     }
     Else 
     {
